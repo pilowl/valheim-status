@@ -10,33 +10,31 @@ import (
 
 var (
 	EnvDiscordAPIKey         = "VALHEIM_DISCORD_STATUS_API_KEY"
+	EnvDiscordBotID          = "VALHEIM_DISCORD_BOT_ID"
+	EnvDiscordChannelID      = "VALHEIM_DISCORD_CHANNEL_ID"
 	EnvStatusUpdateFrequency = "VALHEIM_DISCORD_STATUS_UPDATE_RATE"
 	EnvServerIP              = "VALHEIM_DISCORD_STATUS_STEAM_STATUS_IP"
 )
 
-type config struct {
+type Config struct {
+	DiscordBotID          string
 	DiscordAPIKey         string
+	ChannelID             string
 	StatusUpdateFrequency time.Duration
 	ServerIP              string
 }
 
-func (c *config) String() string {
+func (c *Config) String() string {
 	s := ""
 	s += fmt.Sprintf("%s=%v;", EnvDiscordAPIKey, c.DiscordAPIKey)
+	s += fmt.Sprintf("%s=%v;", EnvDiscordBotID, c.DiscordBotID)
+	s += fmt.Sprintf("%s=%v;", EnvDiscordChannelID, c.ChannelID)
 	s += fmt.Sprintf("%s=%v;", EnvStatusUpdateFrequency, c.StatusUpdateFrequency)
 	s += fmt.Sprintf("%s=%v.", EnvServerIP, c.ServerIP)
 	return s
 }
 
-func NewMockConfig() (*config, error) {
-	return &config{
-		DiscordAPIKey:         "123",
-		StatusUpdateFrequency: 60 * time.Second,
-		ServerIP:              "11.22.33.44",
-	}, nil
-}
-
-func NewConfig() (*config, error) {
+func NewConfig() (*Config, error) {
 	emptyEnvVariableError := func(variable string) error {
 		return fmt.Errorf("%s environment variable is not set", variable)
 	}
@@ -44,6 +42,11 @@ func NewConfig() (*config, error) {
 	discordAPIKey := os.Getenv(EnvDiscordAPIKey)
 	if len(discordAPIKey) == 0 {
 		return nil, emptyEnvVariableError(EnvDiscordAPIKey)
+	}
+
+	channelID := os.Getenv(EnvDiscordChannelID)
+	if len(channelID) == 0 {
+		return nil, emptyEnvVariableError(EnvDiscordChannelID)
 	}
 
 	statusUpdateFrequency, err := strconv.Atoi(os.Getenv(EnvStatusUpdateFrequency))
@@ -60,7 +63,7 @@ func NewConfig() (*config, error) {
 		return nil, emptyEnvVariableError(EnvServerIP)
 	}
 
-	return &config{
+	return &Config{
 		DiscordAPIKey:         discordAPIKey,
 		StatusUpdateFrequency: time.Second * time.Duration(statusUpdateFrequency),
 		ServerIP:              serverIP,

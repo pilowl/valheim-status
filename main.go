@@ -12,11 +12,21 @@ func main() {
 	}
 	logHandler := slog.NewTextHandler(os.Stdout, opts)
 	logger := slog.New(logHandler)
-	config, err := NewMockConfig()
+
+	config, err := NewConfig()
 	if err != nil {
-		logger.Error(err.Error())
+		logger.With(err).Info("Failed to initialize config")
 		os.Exit(1)
 	}
 	logger.Info("Service config: " + config.String())
-	logger.Info("Starting service now...")
+
+	logger.Info("Starting server now...")
+	if err := run(logger, config); err != nil {
+		logger.With(map[string]interface{}{
+			"error":  err,
+			"config": config,
+		}).Error("Error occured while running server")
+	}
+
+	logger.Info("Server exited")
 }
